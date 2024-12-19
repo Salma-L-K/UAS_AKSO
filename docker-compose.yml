@@ -1,0 +1,61 @@
+version: "3.9" 
+name: Projek_AKSO_Celine_Salma
+
+services:
+  # 1. HTTP Server: NGINX
+  nginx:
+    image: nginx:latest
+    container_name: nginx_https
+    ports:
+      - "80:80"  
+    volumes:
+      - ./edu-meeting:/usr/share/nginx/html  
+    configs:
+      - source: custom_nginx_config
+        target: /etc/nginx/conf.d/default.conf 
+    networks:
+      - app_network
+    depends_on:
+      - mysql
+      - rabbitmq
+
+  # 2. Database Server: MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_dbs
+    environment:
+      MYSQL_ROOT_PASSWORD: mysqlakso
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pw123akso
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"  # Port standar utk mysql
+    networks:
+      - app_network
+
+  # 3. Message Queue: RabbitMQ
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_mq
+    ports:
+      - "5672:5672"   # port protokol
+      - "15672:15672" # management UI
+    networks:
+      - app_network
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: rabbit123akso
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+
+configs:
+  custom_nginx_config:
+    file: ./nginx.conf  # custom location
